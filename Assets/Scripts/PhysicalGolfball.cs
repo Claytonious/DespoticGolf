@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PhysicalGolfball : MonoBehaviour
@@ -16,6 +18,7 @@ public class PhysicalGolfball : MonoBehaviour
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
+        StartCoroutine(GetTexture());
     }
     
     private void OnCollisionEnter(Collision c)
@@ -41,6 +44,21 @@ public class PhysicalGolfball : MonoBehaviour
         else if (Input.GetKey(KeyCode.D))
         {
             _rigidbody.AddForce(Vector3.right * _controlForce);                        
+        }
+    }
+
+    private IEnumerator GetTexture()
+    {
+        using (var request =
+            UnityWebRequestTexture.GetTexture("https://www.gravatar.com/avatar/" + Guid.NewGuid().ToString("N") +
+                                              "?d=robohash"))
+        {
+            yield return request.Send();
+            if (!request.isNetworkError && !request.isHttpError)
+            {
+                GetComponent<Renderer>().material.mainTexture =
+                    ((DownloadHandlerTexture) request.downloadHandler).texture;
+            }
         }
     }
 }
